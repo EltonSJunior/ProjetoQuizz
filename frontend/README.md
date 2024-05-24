@@ -1,18 +1,14 @@
 
-## Getting Started
+Projeto Quizz
+Tecnologias: Next, React, Tailwind
 
-First, run the development server:
+## Instalar dependências
+```bash
+$ npm install
+```
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
+Rodando em [http://localhost:3000](http://localhost:3000).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.

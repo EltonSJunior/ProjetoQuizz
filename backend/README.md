@@ -1,31 +1,16 @@
-## Installation
+Projeto Quizz
+Tecnologias: Nest, TypeORM, Postgress
 
+Quando rodar pela primeira vez criar um arquivo .env para adicionar os dados do banco
+
+## Instalar dependências
 ```bash
 $ npm install
 ```
 
-## Running the app
-
+## Rodar o projeto
 ```bash
-# development
-$ npm run start
-
-# watch mode
 $ npm run start:dev
-
-# production mode
-$ npm run start:prod
 ```
 
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
+Rodando em [http://localhost:3030](http://localhost:3030).
