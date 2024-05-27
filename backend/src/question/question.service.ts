@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Question } from './entities/question.entity';
 import { Answer } from '../answer/entities/answer.entity';
 
@@ -16,64 +16,139 @@ export class QuestionService {
     private questionRepository: Repository<Question>,
     @InjectRepository(Answer)
     private answerRepository: Repository<Answer>,
+    private connection: DataSource,
   ) { }
 
-  //Adicionar um try catch depois para tentar pegar erros
   async createQuestion(data: QuestionCreate): Promise<Question> {
 
-    //Criando a questão primeiro para poder usar o id que será gerado nela para criar as respostas
-    const newQuestion = this.questionRepository.create({ text: data.text, createdAt: new Date() });
-    const savedQuestion = await this.questionRepository.save(newQuestion);
+    try {
+      //Criando a questão primeiro para poder usar o id que será gerado nela para criar as respostas
+      const newQuestion = this.questionRepository.create({ text: data.text, createdAt: new Date() });
+      const savedQuestion = await this.questionRepository.save(newQuestion);
 
-    //Criando as repostas e adicionando o id da questão criado acima
-    const answerPromises = data.answers.map(answer => {
-      const newAnswer = this.answerRepository.create({ ...answer, question: savedQuestion });
-      return this.answerRepository.save(newAnswer);
-    });
+      //Criando as repostas e adicionando o id da questão criado acima
+      const answerPromises = data.answers.map(answer => {
+        const newAnswer = this.answerRepository.create({ ...answer, question: savedQuestion });
+        return this.answerRepository.save(newAnswer);
+      });
 
-    //Esperando as promises rodarem para ver se deu tudo certo e aí sim salvando tudo no banco
-    await Promise.all(answerPromises);
+      //Esperando as promises rodarem para ver se deu tudo certo e aí sim salvando tudo no banco
+      await Promise.all(answerPromises);
 
-    //Retornando as perguntas e respostas criadas
-    return this.questionRepository.findOne({ where: { id: savedQuestion.id }, relations: ['answers'] });
+      //Retornando as perguntas e respostas criadas
+      return this.questionRepository.findOne({ where: { id: savedQuestion.id }, relations: ['answers'] });
+    } catch (error) {
+      //Jogando mensagem de erro para quando ouver alguma falha
+      throw new InternalServerErrorException("Falha ao criar questão!")
+    }
   }
 
+  //Find All padrão apenas buscando as perguntas e respostas associadas
   async findAllQuestions(): Promise<Question[]> {
-    return this.questionRepository.find({ relations: ['answers'] });
+    try {
+      return this.questionRepository.find({ relations: ['answers'] });
+    } catch (error) {
+      throw new InternalServerErrorException("Erro ao buscar questões!")
+    }
   }
 
+  //Find One padrão buscando pergunta e respostas associadas
   async findOneQuestion(id: number): Promise<Question> {
-    return this.questionRepository.findOne({ where: { id }, relations: ['answers'] });
+    try {
+      const question = await this.questionRepository.findOne({ where: { id }, relations: ['answers'] })
+      if (!question) {
+        throw new NotFoundException('Questão não localizada!');
+      }
+      return question;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException("Erro ao buscar questão!")
+    }
   }
 
-  async updateQuestion(id: number, question: Question): Promise<Question> {
-    await this.questionRepository.update(id, question);
-    return this.questionRepository.findOne({ where: { id }, relations: ['answers'] });
+  async updateQuestion(id: number, data: QuestionCreate): Promise<Question> {
+    //Criando uma transaction
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      //Verificando se a pergunta existe
+      const existingQuestion = await this.questionRepository.findOne({ where: { id }, relations: ['answers'] })
+      if (!existingQuestion) {
+        throw new NotFoundException('Questão não localizada!');
+      }
+
+      //Atualizando a pergunta
+      await this.questionRepository.update(id, { text: data.text });
+
+      //Verificando se estão sendo passadas respostas no data
+      if (data.answers) {
+        //Se tiver novas respostas para atualizar, as antigas são deletadas
+        await queryRunner.manager.delete(Answer, { question: { id } });
+
+        //E depois são criadas novas respostas com base nas recebidas no data
+        const answerPromises = data.answers.map((answer) => {
+          const newAnswer = this.answerRepository.create({ ...answer, question: existingQuestion });
+          return queryRunner.manager.save(newAnswer);
+        });
+
+        //Esperando as promises rodarem para ver se tá tudo ok
+        await Promise.all(answerPromises);
+      }
+
+      //Fazendo o commit da transaction
+      await queryRunner.commitTransaction();
+
+      //Retornando a pergunta e respostas atualizadas
+      return this.questionRepository.findOne({ where: { id }, relations: ['answers'] });
+
+    } catch (error) {
+      //Se tiver achado algum erro vai dar um rollback na transaction e cancelar tudo
+      await queryRunner.rollbackTransaction();
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Falha ao atualizar a questão!');
+    } finally {
+      //Se deu tudo certo ele libera a transaction
+      await queryRunner.release();
+    }
   }
 
-  async removeQuestion(id: number): Promise<void> {
-    await this.questionRepository.delete(id);
-  }
+  async removeQuestion(id: number): Promise<{ message: string }> {
+    //Criando uma transaction
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-  async createAnswer(answer: Answer): Promise<Answer> {
-    const newAnswer = this.answerRepository.create(answer);
-    return this.answerRepository.save(newAnswer);
-  }
+    try {
+      //Deletando as respostas associdas a pergunta
+      await queryRunner.manager.delete(Answer, { question: { id } })
 
-  async findAllAnswers(): Promise<Answer[]> {
-    return this.answerRepository.find({ relations: ['question'] });
-  }
+      //Deletando a pergunta
+      const result = await queryRunner.manager.delete(Question, id);
+      if (result.affected === 0) {
+        throw new NotFoundException('Questão não localizada!');
+      }
 
-  async findOneAnswer(id: number): Promise<Answer> {
-    return this.answerRepository.findOne({ where: { id }, relations: ['question'] });
-  }
+      //Comitando a transaction
+      await queryRunner.commitTransaction();
 
-  async updateAnswer(id: number, answer: Answer): Promise<Answer> {
-    await this.answerRepository.update(id, answer);
-    return this.answerRepository.findOne({ where: { id }, relations: ['question'] });
-  }
-
-  async removeAnswer(id: number): Promise<void> {
-    await this.answerRepository.delete(id);
+      //Mensagem confirmando
+      return { message: 'Questão removida com sucesso' }
+    } catch (error) {
+      //Se der erro faz o rollback pra cancelar as ações
+      await queryRunner.rollbackTransaction();
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Falha ao remover a questão!');
+    } finally {
+      //Se der tudo certo libera a transaction
+      await queryRunner.release();
+    }
   }
 }

@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { QuestionService } from './question.service';
 import { Question } from './entities/question.entity';
-import { Answer } from 'src/answer/entities/answer.entity';
 
 @Controller('questions')
 export class QuestionController {
@@ -28,33 +27,7 @@ export class QuestionController {
   }
 
   @Delete(':id')
-  removeQuestion(@Param('id') id: string): Promise<void> {
+  removeQuestion(@Param('id') id: string): Promise<{ message: string }> {
     return this.questionService.removeQuestion(+id);
-  }
-
-  @Post(':questionId/answers')
-  createAnswer(@Param('questionId') questionId: string, @Body() answer: Answer): Promise<Answer> {
-    answer.question = { id: +questionId } as Question; // Define a relação com a questão
-    return this.questionService.createAnswer(answer);
-  }
-
-  @Get(':questionId/answers')
-  findAllAnswers(@Param('questionId') questionId: string): Promise<Answer[]> {
-    return this.questionService.findAllAnswers();
-  }
-
-  @Get('answers/:id')
-  findOneAnswer(@Param('id') id: string): Promise<Answer> {
-    return this.questionService.findOneAnswer(+id);
-  }
-
-  @Patch('answers/:id')
-  updateAnswer(@Param('id') id: string, @Body() answer: Answer): Promise<Answer> {
-    return this.questionService.updateAnswer(+id, answer);
-  }
-
-  @Delete('answers/:id')
-  removeAnswer(@Param('id') id: string): Promise<void> {
-    return this.questionService.removeAnswer(+id);
   }
 }
