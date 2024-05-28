@@ -20,26 +20,38 @@ export class QuestionService {
   ) { }
 
   async createQuestion(data: QuestionCreate): Promise<Question> {
+    //Criando uma transaction
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
     try {
       //Criando a questão primeiro para poder usar o id que será gerado nela para criar as respostas
-      const newQuestion = this.questionRepository.create({ text: data.text, createdAt: new Date() });
-      const savedQuestion = await this.questionRepository.save(newQuestion);
+      const newQuestion = this.questionRepository.create({ text: data.text });
+      const savedQuestion = await queryRunner.manager.save(newQuestion);
 
       //Criando as repostas e adicionando o id da questão criado acima
       const answerPromises = data.answers.map(answer => {
         const newAnswer = this.answerRepository.create({ ...answer, question: savedQuestion });
-        return this.answerRepository.save(newAnswer);
+        return queryRunner.manager.save(newAnswer);
       });
 
       //Esperando as promises rodarem para ver se deu tudo certo e aí sim salvando tudo no banco
       await Promise.all(answerPromises);
 
+      //Comitando a transaction
+      await queryRunner.commitTransaction();
+
       //Retornando as perguntas e respostas criadas
       return this.questionRepository.findOne({ where: { id: savedQuestion.id }, relations: ['answers'] });
     } catch (error) {
+      //Rollback para caso haja erro
+      await queryRunner.rollbackTransaction();
       //Jogando mensagem de erro para quando ouver alguma falha
       throw new InternalServerErrorException("Falha ao criar questão!")
+    } finally {
+      //Liberando a transaction
+      await queryRunner.release();
     }
   }
 
