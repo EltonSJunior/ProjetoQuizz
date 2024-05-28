@@ -1,5 +1,6 @@
 'use client';
-import { getAll } from '@/api/api';
+import { useRouter } from 'next/navigation';
+import { getAll, remove } from '@/api/api';
 import { QuestionList } from '@/interfaces/interfaces';
 import { useEffect, useState, FC } from 'react';
 
@@ -7,6 +8,8 @@ const ListQuestions: FC = () => {
     const [questions, setQuestions] = useState<QuestionList[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+
+    const router = useRouter();
 
     useEffect(() => {
         const fetchQuestions = async () => {
@@ -34,6 +37,29 @@ const ListQuestions: FC = () => {
         return String.fromCharCode(97 + index);
     };
 
+    const handleEdit = (id: number) => {
+        router.push(`/edit?id=${id}`);
+    };
+
+    const handleDelete = async (id: number) => {
+        const isConfirmed = window.confirm('Tem certeza que deseja deletar esta pergunta?');
+        if (!isConfirmed) return;
+
+        try {
+            const response = await remove('questions', id);
+            if (!response.ok) {
+                throw new Error('Erro ao deletar pergunta!');
+            }
+            setQuestions(questions.filter(question => question.id !== id));
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('Erro desconhecido');
+            }
+        }
+    };
+
     if (isLoading) {
         return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
     }
@@ -56,6 +82,20 @@ const ListQuestions: FC = () => {
                                 </li>
                             ))}
                         </ul>
+                        <div className="flex mt-4">
+                            <button
+                                className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+                                onClick={() => handleEdit(question.id)}
+                            >
+                                Editar
+                            </button>
+                            <button
+                                className="bg-red-500 text-white px-4 py-2 rounded"
+                                onClick={() => handleDelete(question.id)}
+                            >
+                                Deletar
+                            </button>
+                        </div>
                     </li>
                 ))}
             </ul>

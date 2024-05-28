@@ -9,13 +9,13 @@ const Home: FC = () => {
         Este projeto é um sistema de perguntas e respostas onde você pode criar, listar e responder perguntas.
       </p>
       <div className="flex space-x-4">
-        <Link href="/CreateQuestion" legacyBehavior>
+        <Link href="/create" legacyBehavior>
           <a className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">Criar Pergunta</a>
         </Link>
-        <Link href="/List" legacyBehavior>
+        <Link href="/list" legacyBehavior>
           <a className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700">Listar Perguntas</a>
         </Link>
-        <Link href="/Quizz" legacyBehavior>
+        <Link href="/quizz" legacyBehavior>
           <a className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-700">Responder Quizz</a>
         </Link>
       </div>
