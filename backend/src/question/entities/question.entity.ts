@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn } from 'typeorm';
 import { Answer } from '../../answer/entities/answer.entity';
 
 @Entity()
@@ -9,7 +9,7 @@ export class Question {
     @Column()
     text: string;
 
-    @Column()
+    @CreateDateColumn()
     createdAt: Date;
 
     @OneToMany(() => Answer, answer => answer.question, { cascade: true })
