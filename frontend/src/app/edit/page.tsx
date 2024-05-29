@@ -1,9 +1,11 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getOne, patch } from '@/api/api';
-import { AnswerInput } from '@/components/AnswerInput';
+import { AnswerInput } from '../../../components/AnswerInput';
 import { QuestionData, QuestionList } from '@/interfaces/interfaces';
 import { useState, useEffect, ChangeEvent, FormEvent, FC } from 'react';
+import withAuth from '../../../components/withAuth';
+import withAppBar from '../../../components/AppBar';
 
 const EditQuestion: FC = () => {
     const [question, setQuestion] = useState<string>('');
@@ -12,33 +14,39 @@ const EditQuestion: FC = () => {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
+    const [token, setToken] = useState('');
+
+
     const router = useRouter();
     const searchParams = useSearchParams();
     const questionId = searchParams.get('id');
+    console.log(token)
 
     useEffect(() => {
-        const fetchQuestion = async () => {
-            if (questionId) {
-                try {
-                    const response = await getOne('questions', parseInt(questionId));
-                    if (!response.ok) {
-                        throw new Error('Erro ao buscar pergunta!');
-                    }
-                    const data: QuestionList = await response.json();
-                    setQuestion(data.text);
-                    setAnswers(data.answers.map(answer => answer.text));
-                    const correctIndex = data.answers.findIndex(answer => answer.isCorrect);
-                    setCorrectAnswerIndex(correctIndex !== -1 ? correctIndex : 0);
-                } catch (err: unknown) {
-                    if (err instanceof Error) {
-                        setError(err.message);
-                    } else {
-                        setError('Erro desconhecido');
+        const storedToken = localStorage.getItem('token');
+        if (storedToken) {
+            setToken(storedToken);
+
+            const fetchQuestion = async (storedToken: string) => {
+                if (questionId) {
+                    try {
+                        const response = await getOne('questions', parseInt(questionId), storedToken);
+                        const data: QuestionList = response;
+                        setQuestion(data.text);
+                        setAnswers(data.answers.map(answer => answer.text));
+                        const correctIndex = data.answers.findIndex(answer => answer.isCorrect);
+                        setCorrectAnswerIndex(correctIndex !== -1 ? correctIndex : 0);
+                    } catch (err: unknown) {
+                        if (err instanceof Error) {
+                            setError(err.message);
+                        } else {
+                            setError('Erro desconhecido');
+                        }
                     }
                 }
-            }
-        };
-        fetchQuestion();
+            };
+            fetchQuestion(storedToken);
+        }
     }, [questionId]);
 
     const handleAnswerChange = (index: number, value: string) => {
@@ -68,9 +76,9 @@ const EditQuestion: FC = () => {
 
         try {
             if (questionId) {
-                const response = await patch(`questions/${questionId}`, data);
-
-                if (response.ok) {
+                const response = await patch(`questions/${questionId}`, data, token);
+                console.log(response)
+                if (response.status === 200) {
                     alert('Pergunta atualizada com sucesso!');
                     router.push('/list');
                 } else {
@@ -133,4 +141,4 @@ const EditQuestion: FC = () => {
     );
 };
 
-export default EditQuestion;
+export default withAuth(withAppBar(EditQuestion));

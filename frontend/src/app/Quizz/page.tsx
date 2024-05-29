@@ -2,6 +2,8 @@
 import { getAll } from '@/api/api';
 import { Answer, QuestionList } from '@/interfaces/interfaces';
 import { useEffect, useState, FC } from 'react';
+import withAppBar from '../../../components/AppBar';
+import withAuth from '../../../components/withAuth';
 
 const Quizz: FC = () => {
     const [questions, setQuestions] = useState<QuestionList[]>([]);
@@ -10,14 +12,20 @@ const Quizz: FC = () => {
     const [showResult, setShowResult] = useState<boolean>(false);
     const [score, setScore] = useState<number>(0);
     const [shuffledAnswers, setShuffledAnswers] = useState<Answer[]>([]);
+    const [token, setToken] = useState('');
+
 
     useEffect(() => {
-        const fetchQuestions = async () => {
-            const response = await getAll('questions');
-            const data: QuestionList[] = await response.json();
-            setQuestions(data);
-        };
-        fetchQuestions();
+        const storedToken = localStorage.getItem('token');
+        if (storedToken) {
+            setToken(storedToken);
+            const fetchQuestions = async (storedToken: string) => {
+                const response = await getAll('questions', storedToken);
+                const data: QuestionList[] = response;
+                setQuestions(data);
+            };
+            fetchQuestions(storedToken);
+        }
     }, []);
 
     useEffect(() => {
@@ -97,4 +105,4 @@ const Quizz: FC = () => {
     );
 };
 
-export default Quizz;
+export default withAuth(withAppBar(Quizz));

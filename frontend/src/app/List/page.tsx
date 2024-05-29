@@ -3,35 +3,46 @@ import { useRouter } from 'next/navigation';
 import { getAll, remove } from '@/api/api';
 import { QuestionList } from '@/interfaces/interfaces';
 import { useEffect, useState, FC } from 'react';
+import withAuth from '../../../components/withAuth';
+import withAppBar from '../../../components/AppBar';
 
 const ListQuestions: FC = () => {
     const [questions, setQuestions] = useState<QuestionList[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [token, setToken] = useState<string>('');
 
     const router = useRouter();
 
     useEffect(() => {
-        const fetchQuestions = async () => {
-            try {
-                const response = await getAll('questions');
-                if (!response.ok) {
-                    throw new Error('Erro ao buscar perguntas!');
+        const storedToken = localStorage.getItem('token');
+        if (storedToken) {
+            setToken(storedToken);
+
+            const fetchQuestions = async (retrievedToken: string) => {
+                try {
+                    const response = await getAll('questions', retrievedToken);
+                    console.log(response)
+
+                    const data: QuestionList[] = response;
+                    setQuestions(data);
+                } catch (err: unknown) {
+                    if (err instanceof Error) {
+                        setError(err.message);
+                    } else {
+                        setError('Erro desconhecido');
+                    }
+                } finally {
+                    setIsLoading(false);
                 }
-                const data: QuestionList[] = await response.json();
-                setQuestions(data);
-            } catch (err: unknown) {
-                if (err instanceof Error) {
-                    setError(err.message);
-                } else {
-                    setError('Erro desconhecido');
-                }
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchQuestions();
+            };
+
+            fetchQuestions(storedToken);
+        } else {
+            setIsLoading(false);
+        }
     }, []);
+
 
     const getLetterFromIndex = (index: number): string => {
         return String.fromCharCode(97 + index);
@@ -46,8 +57,8 @@ const ListQuestions: FC = () => {
         if (!isConfirmed) return;
 
         try {
-            const response = await remove('questions', id);
-            if (!response.ok) {
+            const response = await remove('questions', id, token);
+            if (!response) {
                 throw new Error('Erro ao deletar pergunta!');
             }
             setQuestions(questions.filter(question => question.id !== id));
@@ -103,4 +114,4 @@ const ListQuestions: FC = () => {
     );
 };
 
-export default ListQuestions;
+export default withAuth(withAppBar(ListQuestions));

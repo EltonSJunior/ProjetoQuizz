@@ -1,14 +1,24 @@
 'use client';
 import { post } from '@/api/api';
-import { AnswerInput } from '@/components/AnswerInput';
+import { AnswerInput } from '../../../components/AnswerInput';
+import withAuth from '../../../components/withAuth';
 import { QuestionData } from '@/interfaces/interfaces';
-import { useState, ChangeEvent, FormEvent, FC } from 'react';
+import { useState, ChangeEvent, FormEvent, FC, useEffect } from 'react';
+import withAppBar from '../../../components/AppBar';
 
 const CreateQuestion: FC = () => {
     const [question, setQuestion] = useState<string>('');
     const [answers, setAnswers] = useState<string[]>(['', '', '', '', '']);
     const [correctAnswerIndex, setCorrectAnswerIndex] = useState<number>(0);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+    const [token, setToken] = useState('');
+    useEffect(() => {
+        const storedToken = localStorage.getItem('token');
+        if (storedToken) {
+            setToken(storedToken);
+        }
+    }, [])
 
     const handleAnswerChange = (index: number, value: string) => {
         setAnswers(prevAnswers => {
@@ -36,9 +46,9 @@ const CreateQuestion: FC = () => {
         setIsSubmitting(true);
 
         try {
-            const response = await post('questions', data);
+            const response = await post('questions', data, token);
 
-            if (response.ok) {
+            if (response.status === 201) {
                 alert('Pergunta criada com sucesso!');
                 setQuestion('');
                 setAnswers(['', '', '', '', '']);
@@ -90,4 +100,4 @@ const CreateQuestion: FC = () => {
     );
 };
 
-export default CreateQuestion;
+export default withAuth(withAppBar(CreateQuestion));
