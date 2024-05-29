@@ -1,8 +1,8 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { Question } from './entities/question.entity';
-import { Answer } from '../answer/entities/answer.entity';
+import { Question } from '../entities/question.entity';
+import { Answer } from 'src/entities/answer.entity';
 
 export interface QuestionCreate {
   text: string,

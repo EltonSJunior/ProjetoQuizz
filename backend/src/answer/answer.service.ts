@@ -1,8 +1,8 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Answer } from './entities/answer.entity';
-import { Question } from '../question/entities/question.entity';
+import { Question } from '../entities/question.entity';
+import { Answer } from 'src/entities/answer.entity';
 
 @Injectable()
 export class AnswerService {
@@ -16,7 +16,6 @@ export class AnswerService {
 
     async create(answer: Answer): Promise<Answer> {
         try {
-            console.log(answer)
             const newAnswer = this.answerRepository.create(answer);
             return await this.answerRepository.save(newAnswer);
         } catch (error) {

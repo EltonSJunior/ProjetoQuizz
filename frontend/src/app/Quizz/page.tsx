@@ -42,7 +42,6 @@ const Quizz: FC = () => {
     const handleNextQuestion = () => {
         if (selectedAnswer !== null && shuffledAnswers[selectedAnswer].isCorrect) {
             setScore(score + 1);
-            console.log(score)
         }
         setSelectedAnswer(null);
         if (currentQuestionIndex < questions.length - 1) {

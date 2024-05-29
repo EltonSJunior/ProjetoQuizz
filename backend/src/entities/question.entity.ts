@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn } from 'typeorm';
-import { Answer } from '../../answer/entities/answer.entity';
+import { Answer } from './answer.entity';
 
 @Entity()
 export class Question {
