@@ -80,7 +80,7 @@ const EditQuestion: FC = () => {
                 console.log(response)
                 if (response.status === 200) {
                     alert('Pergunta atualizada com sucesso!');
-                    router.push('/list');
+                    router.push('/List');
                 } else {
                     alert('Erro ao atualizar pergunta.');
                 }
@@ -131,7 +131,7 @@ const EditQuestion: FC = () => {
                     <button
                         type='button'
                         className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        onClick={() => router.push('/list')}
+                        onClick={() => router.push('/List')}
                     >
                         Voltar
                     </button>
