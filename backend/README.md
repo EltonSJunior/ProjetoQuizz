@@ -7,6 +7,7 @@ DB_PASS=
 DB_DB=
 DB_HOST=
 DB_PORT=
+PRIVATE_KEY=
 
 
 ## Instalar dependências
