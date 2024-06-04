@@ -12,12 +12,10 @@ const Quizz: FC = () => {
   const [showResult, setShowResult] = useState<boolean>(false);
   const [score, setScore] = useState<number>(0);
   const [shuffledAnswers, setShuffledAnswers] = useState<Answer[]>([]);
-  const [token, setToken] = useState('');
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
-      setToken(storedToken);
       const fetchQuestions = async (storedToken: string) => {
         const response = await getAll('questions', storedToken);
         const data: QuestionList[] = response;
@@ -36,7 +34,7 @@ const Quizz: FC = () => {
     }
   }, [questions, currentQuestionIndex]);
 
-  const shuffleArray = (array: any[]) => {
+  const shuffleArray = (array: Answer[]): Answer[] => {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
@@ -71,10 +69,10 @@ const Quizz: FC = () => {
     );
   }
 
-  if (!questions.length) {
+  if (questions.length === 0) {
     return (
-      <div className="min-h-screen text-black text-4xl font-bold flex flex-col items-center justify-center bg-gray-100 p-4">
-        Loading...
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        Sem perguntas para retornar
       </div>
     );
   }

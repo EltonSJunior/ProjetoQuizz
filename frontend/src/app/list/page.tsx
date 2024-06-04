@@ -92,6 +92,14 @@ const ListQuestions: FC = () => {
     );
   }
 
+  if (questions.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        Sem perguntas para retornar
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
       <h1 className="text-4xl text-black font-bold mb-4">Lista de Perguntas</h1>
