@@ -7,8 +7,8 @@ import { useRouter } from 'next/navigation';
 const navItems = [
     { text: 'Home', href: '/' },
     { text: 'Create', href: '/create' },
-    { text: 'List', href: '/List' },
-    { text: 'Quizz', href: '/Quizz' },
+    { text: 'List', href: '/list' },
+    { text: 'Quizz', href: '/quizz' },
 ];
 
 const withAppBar = (WrappedComponent: React.ComponentType<any>) => {
