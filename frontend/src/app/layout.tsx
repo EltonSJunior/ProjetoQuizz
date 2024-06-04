@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./styles.css";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './styles.css';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Projeto Quizz",
+  title: 'Projeto Quizz',
 };
 
 export default function RootLayout({
@@ -15,7 +15,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-
       <body className={inter.className}>{children}</body>
     </html>
   );
