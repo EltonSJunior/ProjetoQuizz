@@ -3,6 +3,7 @@ import { post } from '@/api/api';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import Swal from 'sweetalert2';
 
 export default function Login() {
     const { register, handleSubmit } = useForm();
@@ -15,7 +16,11 @@ export default function Login() {
             localStorage.setItem('token', response.data.access_token);
             router.push('/');
         } catch (err) {
-            alert('Erro')
+            Swal.fire({
+                title: 'Erro ao logar!',
+                text: 'Verifique usuário e senha!',
+                icon: 'error'
+            });
         }
     };
 

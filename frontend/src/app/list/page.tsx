@@ -5,6 +5,7 @@ import { QuestionList } from '@/interfaces/interfaces';
 import { useEffect, useState, FC } from 'react';
 import withAuth from '../../../components/withAuth';
 import withAppBar from '../../../components/AppBar';
+import Swal from 'sweetalert2';
 
 const ListQuestions: FC = () => {
     const [questions, setQuestions] = useState<QuestionList[]>([]);
@@ -22,7 +23,6 @@ const ListQuestions: FC = () => {
             const fetchQuestions = async (retrievedToken: string) => {
                 try {
                     const response = await getAll('questions', retrievedToken);
-                    console.log(response)
 
                     const data: QuestionList[] = response;
                     setQuestions(data);
@@ -53,8 +53,9 @@ const ListQuestions: FC = () => {
     };
 
     const handleDelete = async (id: number) => {
-        const isConfirmed = window.confirm('Tem certeza que deseja deletar esta pergunta?');
-        if (!isConfirmed) return;
+        const responseAlert = await Swal.fire({ title: 'Tem certeza que deseja excluir a pergunta?', showDenyButton: true, confirmButtonText: 'Excluir', denyButtonText: 'Cancelar' });
+
+        if (responseAlert.isConfirmed === false) return;
 
         try {
             const response = await remove('questions', id, token);

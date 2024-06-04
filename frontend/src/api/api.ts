@@ -13,7 +13,6 @@ const post = async (endpoint: string, data: QuestionData, token?: string) => {
         });
         return response;
     } catch (error) {
-        console.error('Erro ao fazer POST:', error);
         throw error;
     }
 };
@@ -28,7 +27,6 @@ const patch = async (endpoint: string, data: QuestionData, token: string) => {
         });
         return response;
     } catch (error) {
-        console.error('Erro ao fazer PATCH:', error);
         throw error;
     }
 };
@@ -42,7 +40,6 @@ const getAll = async (endpoint: string, token: string) => {
         });
         return response.data;
     } catch (error) {
-        console.error('Erro ao fazer GET all:', error);
         throw error;
     }
 };
@@ -56,7 +53,6 @@ const getOne = async (endpoint: string, id: number, token: string) => {
         });
         return response.data;
     } catch (error) {
-        console.error('Erro ao fazer GET one:', error);
         throw error;
     }
 };
@@ -70,7 +66,6 @@ const remove = async (endpoint: string, id: number, token: string) => {
         });
         return response.data;
     } catch (error) {
-        console.error('Erro ao fazer DELETE:', error);
         throw error;
     }
 };

@@ -5,6 +5,7 @@ import withAuth from '../../../components/withAuth';
 import { QuestionData } from '@/interfaces/interfaces';
 import { useState, ChangeEvent, FormEvent, FC, useEffect } from 'react';
 import withAppBar from '../../../components/AppBar';
+import Swal from 'sweetalert2';
 
 const CreateQuestion: FC = () => {
     const [question, setQuestion] = useState<string>('');
@@ -32,7 +33,11 @@ const CreateQuestion: FC = () => {
         event.preventDefault();
 
         if (!question.trim() || answers.some(answer => !answer.trim())) {
-            alert('Por favor, preencha a pergunta e todas as respostas.');
+            Swal.fire({
+                title: 'Erro ao criar pergunta!',
+                text: 'Por favor, preencha a pergunta e todas as respostas.',
+                icon: 'error'
+            });
             return;
         }
 
@@ -49,15 +54,23 @@ const CreateQuestion: FC = () => {
             const response = await post('questions', data, token);
 
             if (response.status === 201) {
-                alert('Pergunta criada com sucesso!');
+                Swal.fire({
+                    title: 'Pergunta criada com sucesso!',
+                    icon: 'success'
+                });
                 setQuestion('');
                 setAnswers(['', '', '', '', '']);
             } else {
-                alert('Erro ao criar pergunta.');
+                Swal.fire({
+                    title: 'Erro ao criar pergunta!',
+                    icon: 'error'
+                });
             }
         } catch (error) {
-            console.error('Erro:', error);
-            alert('Erro ao criar pergunta.');
+            Swal.fire({
+                title: 'Erro ao criar pergunta!',
+                icon: 'error'
+            });
         } finally {
             setIsSubmitting(false);
         }

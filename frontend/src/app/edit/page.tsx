@@ -6,6 +6,7 @@ import { QuestionData, QuestionList } from '@/interfaces/interfaces';
 import { useState, useEffect, ChangeEvent, FormEvent, FC } from 'react';
 import withAuth from '../../../components/withAuth';
 import withAppBar from '../../../components/AppBar';
+import Swal from 'sweetalert2';
 
 const EditQuestion: FC = () => {
     const [question, setQuestion] = useState<string>('');
@@ -20,7 +21,6 @@ const EditQuestion: FC = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const questionId = searchParams.get('id');
-    console.log(token)
 
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
@@ -61,7 +61,11 @@ const EditQuestion: FC = () => {
         event.preventDefault();
 
         if (!question.trim() || answers.some(answer => !answer.trim())) {
-            alert('Por favor, preencha a pergunta e todas as respostas.');
+            Swal.fire({
+                title: 'Erro ao salvar pergunta!',
+                text: 'Por favor, preencha a pergunta e todas as respostas.',
+                icon: 'error'
+            });
             return;
         }
 
@@ -77,17 +81,24 @@ const EditQuestion: FC = () => {
         try {
             if (questionId) {
                 const response = await patch(`questions/${questionId}`, data, token);
-                console.log(response)
                 if (response.status === 200) {
-                    alert('Pergunta atualizada com sucesso!');
+                    Swal.fire({
+                        title: 'Pergunta atualizada com sucesso!',
+                        icon: 'success'
+                    });
                     router.push('/list');
                 } else {
-                    alert('Erro ao atualizar pergunta.');
+                    Swal.fire({
+                        title: 'Erro ao criar pergunta!',
+                        icon: 'error'
+                    });
                 }
             }
         } catch (error) {
-            console.error('Erro:', error);
-            alert('Erro ao atualizar pergunta.');
+            Swal.fire({
+                title: 'Erro ao criar pergunta!',
+                icon: 'error'
+            });
         } finally {
             setIsSubmitting(false);
         }
